@@ -79,18 +79,30 @@ void levelOrderHelper(Node *root)
 	if (root == NULL){
 		return;
     }
-
+	int c=0, count=0;
+	Node *nodeNULL = NULL;
 	std::queue<Node *> q;
 	q.push(root);
 	while (!q.empty())
 	{
 		Node *temp = q.front();
+		if(temp == nodeNULL){
+			q.pop();
+			count++;
+			continue;
+		}
 
 		cout << temp->key<<" "<<temp->color << " ";
 		q.pop();
+		count++;
+		if((int)log2(count)==c){
+			cout<<endl;
+			count=0;
+			c++;
+		}
         
         if (temp->left == NULL || temp->right == NULL)
-            cout << endl;
+            q.push(nodeNULL);
 		if (temp->left != NULL)
 			q.push(temp->left);
 
