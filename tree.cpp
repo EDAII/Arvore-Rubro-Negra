@@ -38,7 +38,7 @@ public:
 	void levelOrder();
 };
 
-// A recursive function to do level order traversal
+// Travessia em Ordem
 void inorderHelper(Node *root)
 {
 	if (root == NULL)
@@ -49,23 +49,22 @@ void inorderHelper(Node *root)
 	inorderHelper(root->right);
 }
 
-/* A utility function to insert a new node with given key
-in BST */
-Node* BSTInsert(Node* root, Node *pt)
+/* Inserir um no na arvore dado uma chave */
+Node* TREEInsert(Node* root, Node *newNode)
 {
 	/* If the tree is empty, return a new node */
 	if (root == NULL)
-	return pt;
+	return newNode;
 
 	/* Otherwise, recur down the tree */
-	if (pt->key < root->key)
+	if (newNode->key < root->key)
 	{
-		root->left = BSTInsert(root->left, pt);
+		root->left = TREEInsert(root->left,newNode);
 		root->left->parent = root;
 	}
-	else if (pt->key > root->key)
+	else if (newNode->key > root->key)
 	{
-		root->right = BSTInsert(root->right, pt);
+		root->right = TREEInsert(root->right,newNode);
 		root->right->parent = root;
 	}
 
@@ -80,6 +79,7 @@ void levelOrderHelper(Node *root)
 		return;
     }
 	int c=0, count=0;
+	char colorChar;
 	Node *nodeNULL = NULL;
 	std::queue<Node *> q;
 	q.push(root);
@@ -92,7 +92,11 @@ void levelOrderHelper(Node *root)
 			continue;
 		}
 
-		cout << temp->key<<" "<<temp->color << " ";
+		if(temp->color == 1)
+			printf("\033[1m\033[30m (%d%c) \033[0m",temp->key, colorChar);
+		else
+			printf("\033[31m (%d%c) \033[0m",temp->key, colorChar);
+		//cout << temp->key<<" "<<temp->color << " ";
 		q.pop();
 		count++;
 		if((int)log2(count)==c){
@@ -111,138 +115,141 @@ void levelOrderHelper(Node *root)
 	}
 }
 
-void ArvRB::rotateLeft(Node *&root, Node *&pt)
+void ArvRB::rotateLeft(Node *&root, Node *&newNode)
 {
-	Node *pt_right = pt->right;
-	pt->right = pt_right->left;
-	if (pt->right != NULL)
-		pt->right->parent = pt;
+	Node *newNode_right =newNode->right;
+	newNode->right =newNode_right->left;
+	if (newNode->right != NULL)
+		newNode->right->parent =newNode;
 
-	pt_right->parent = pt->parent;
+	newNode_right->parent =newNode->parent;
 
-	if (pt->parent == NULL)
-		root = pt_right;
+	if (newNode->parent == NULL)
+		root =newNode_right;
 
-	else if (pt == pt->parent->left)
-		pt->parent->left = pt_right;
+	else if (newNode==newNode->parent->left)
+		newNode->parent->left =newNode_right;
 
 	else
-		pt->parent->right = pt_right;
+		newNode->parent->right =newNode_right;
 
-	pt_right->left = pt;
-	pt->parent = pt_right;
+	newNode_right->left =newNode;
+	newNode->parent =newNode_right;
 }
 
-void ArvRB::rotateRight(Node *&root, Node *&pt)
+void ArvRB::rotateRight(Node *&root, Node *&newNode)
 {
-	Node *pt_left = pt->left;
+	Node *newNode_left =newNode->left;
 
-	pt->left = pt_left->right;
+	newNode->left =newNode_left->right;
 
-	if (pt->left != NULL)
-		pt->left->parent = pt;
+	if (newNode->left != NULL)
+		newNode->left->parent =newNode;
 
-	pt_left->parent = pt->parent;
+	newNode_left->parent =newNode->parent;
 
-	if (pt->parent == NULL)
-		root = pt_left;
+	if (newNode->parent == NULL)
+		root =newNode_left;
 
-	else if (pt == pt->parent->left)
-		pt->parent->left = pt_left;
+	else if (newNode==newNode->parent->left)
+		newNode->parent->left =newNode_left;
 
 	else
-		pt->parent->right = pt_left;
+		newNode->parent->right =newNode_left;
 
-	pt_left->right = pt;
-	pt->parent = pt_left;
+	newNode_left->right =newNode;
+	newNode->parent =newNode_left;
 }
 
-// This function fixes violations caused by BST insertion
-void ArvRB::fixViolation(Node *&root, Node *&pt)
+// This function fixes violations caused by TREE insertion
+void ArvRB::fixViolation(Node *&root, Node *&newNode)
 {
-	Node *parent_pt = NULL;
-	Node *grand_parent_pt = NULL;
+	Node *parent_newNode= NULL;
+	Node *grand_parent_newNode= NULL;
 
-	while ((pt != root) && (pt->color != BLACK) &&
-		(pt->parent->color == RED))
+	while ((newNode!= root) && (newNode->color != BLACK) &&
+		(newNode->parent->color == RED))
 	{
 
-		parent_pt = pt->parent;
-		grand_parent_pt = pt->parent->parent;
+		parent_newNode=newNode->parent;
+		grand_parent_newNode=newNode->parent->parent;
 
 		/* Case : A
-			Parent of pt is left child of Grand-parent of pt */
-		if (parent_pt == grand_parent_pt->left)
+			Parent ofnewNode is left child of Grand-parent ofnewNode */
+		if (parent_newNode== grand_parent_newNode->left)
 		{
 
-			Node *uncle_pt = grand_parent_pt->right;
+			Node *uncle_newNode= grand_parent_newNode->right;
 
 			/* Case : 1
-			The uncle of pt is also red
+			The uncle ofnewNode is also red
 			Only Recoloring required */
-			if (uncle_pt != NULL && uncle_pt->color == RED)
+			if (uncle_newNode!= NULL && uncle_newNode->color == RED)
 			{
-				grand_parent_pt->color = RED;
-				parent_pt->color = BLACK;
-				uncle_pt->color = BLACK;
-				pt = grand_parent_pt;
+				printf("Caso 1\n");
+				grand_parent_newNode->color = RED;
+				parent_newNode->color = BLACK;
+				uncle_newNode->color = BLACK;
+				newNode= grand_parent_newNode;
 			}
 
 			else
 			{
 				/* Case : 2
-				pt is right child of its parent
+				newNodeis right child of its parent
 				Left-rotation required */
-				if (pt == parent_pt->right)
+				if (newNode== parent_newNode->right)
 				{
-					rotateLeft(root, parent_pt);
-					pt = parent_pt;
-					parent_pt = pt->parent;
+					printf("Caso 2\n");
+					rotateLeft(root, parent_newNode);
+					newNode= parent_newNode;
+					parent_newNode=newNode->parent;
 				}
 
 				/* Case : 3
-				pt is left child of its parent
+				newNodeis left child of its parent
 				Right-rotation required */
-				rotateRight(root, grand_parent_pt);
-				swap(parent_pt->color, grand_parent_pt->color);
-				pt = parent_pt;
+				printf("Caso 3\n");
+				rotateRight(root, grand_parent_newNode);
+				swap(parent_newNode->color, grand_parent_newNode->color);
+				newNode= parent_newNode;
 			}
 		}
 
 		/* Case : B
-		Parent of pt is right child of Grand-parent of pt */
+		Parent ofnewNode is right child of Grand-parent ofnewNode */
 		else
 		{
-			Node *uncle_pt = grand_parent_pt->left;
+			Node *uncle_newNode= grand_parent_newNode->left;
 
 			/* Case : 1
-				The uncle of pt is also red
+				The uncle ofnewNode is also red
 				Only Recoloring required */
-			if ((uncle_pt != NULL) && (uncle_pt->color == RED))
+			if ((uncle_newNode!= NULL) && (uncle_newNode->color == RED))
 			{
-				grand_parent_pt->color = RED;
-				parent_pt->color = BLACK;
-				uncle_pt->color = BLACK;
-				pt = grand_parent_pt;
+				grand_parent_newNode->color = RED;
+				parent_newNode->color = BLACK;
+				uncle_newNode->color = BLACK;
+				newNode= grand_parent_newNode;
 			}
 			else
 			{
 				/* Case : 2
-				pt is left child of its parent
+				newNodeis left child of its parent
 				Right-rotation required */
-				if (pt == parent_pt->left)
+				if (newNode== parent_newNode->left)
 				{
-					rotateRight(root, parent_pt);
-					pt = parent_pt;
-					parent_pt = pt->parent;
+					rotateRight(root, parent_newNode);
+					newNode= parent_newNode;
+					parent_newNode=newNode->parent;
 				}
 
 				/* Case : 3
-				pt is right child of its parent
+				newNodeis right child of its parent
 				Left-rotation required */
-				rotateLeft(root, grand_parent_pt);
-				swap(parent_pt->color, grand_parent_pt->color);
-				pt = parent_pt;
+				rotateLeft(root, grand_parent_newNode);
+				swap(parent_newNode->color, grand_parent_newNode->color);
+				newNode= parent_newNode;
 			}
 		}
 	}
@@ -253,13 +260,13 @@ void ArvRB::fixViolation(Node *&root, Node *&pt)
 // Function to insert a new node with given key
 void ArvRB::insert(const int &key)
 {
-	Node *pt = new Node(key);
+	Node *newNode= new Node(key);
 
-	// Do a normal BST insert
-	root = BSTInsert(root, pt);
+	// Do a normal TREE insert
+	root = TREEInsert(root,newNode);
 
 	// fix Red Black Tree violations
-	fixViolation(root, pt);
+	fixViolation(root,newNode);
 }
 
 // Function to do inorder and level order traversals
@@ -282,6 +289,7 @@ int main()
 			case 1:	cout<<"Digite o numero:";
 					cin>>newKey;
 					tree.insert(newKey);
+					tree.levelOrder();
 					break;
 			case 2: tree.levelOrder();
 					break;
