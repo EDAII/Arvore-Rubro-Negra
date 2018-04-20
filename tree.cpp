@@ -1,23 +1,22 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/* RED = 0
- * BLACK = 1
+/* VERMELHO = 0
+ * PRETO = 1
  */
-enum Color {RED, BLACK};
+enum Cor {VERMELHO, PRETO};
 
 // Estrutura de Nó
-struct Node
+struct No
 {
-	int key;
-	bool color;
-	Node *left, *right, *parent;
+	int chave;
+	bool cor;
+	No *esquerda, *direita, *super;
 
-	// Construtor
-	Node(int key)
+	No(int chave)
 	{
-	this->key = key;
-	left = right = parent = NULL;
+	this->chave = chave;
+	esquerda = direita = super = NULL;
 	}
 };
 
@@ -25,74 +24,68 @@ struct Node
 class ArvRB
 {
 private:
-	Node *root;
+	No *raiz;
 protected:
-	void rotateLeft(Node *&, Node *&);
-	void rotateRight(Node *&, Node *&);
-	void fixViolation(Node *&, Node *&);
+	void rotacaoEsquerda(No *&, No *&);
+	void rotacaoDireita(No *&, No *&);
+	void violacao(No *&, No *&);
 public:
-	// Constructor
-	ArvRB() { root = NULL; }
-	void insert(const int &n);
-	void inorder();
-	void levelOrder();
+
+	ArvRB() { raiz = NULL; }
+	void inserir(const int &n);
+	void emOrdem();
+	void corrigirEstrutura(No *&, No *&);
+	void ordemNivel();
 };
 
-// A recursive function to do level order traversal
-void inorderHelper(Node *root)
+void ordenaArv(No *raiz)
 {
-	if (root == NULL)
+	if (raiz == NULL)
 		return;
 
-	inorderHelper(root->left);
-	cout << root->key << " ";
-	inorderHelper(root->right);
+	ordenaArv(raiz->esquerda);
+	cout << raiz->chave << " ";
+	ordenaArv(raiz->direita);
 }
 
-/* A utility function to insert a new node with given key
-in BST */
-Node* BSTInsert(Node* root, Node *pt)
+No* inserirBST(No* raiz, No* pt)
 {
-	/* If the tree is empty, return a new node */
-	if (root == NULL)
+	if (raiz == NULL)
 	return pt;
 
-	/* Otherwise, recur down the tree */
-	if (pt->key < root->key)
+	if (pt->chave < raiz->chave)
 	{
-		root->left = BSTInsert(root->left, pt);
-		root->left->parent = root;
+		raiz->esquerda = inserirBST(raiz->esquerda, pt);
+		raiz->esquerda->super = raiz;
 	}
-	else if (pt->key > root->key)
+	else if (pt->chave > raiz->chave)
 	{
-		root->right = BSTInsert(root->right, pt);
-		root->right->parent = root;
+		raiz->direita = inserirBST(raiz->direita, pt);
+		raiz->direita->super = raiz;
 	}
 
-	/* return the (unchanged) node pointer */
-	return root;
+	return raiz;
 }
 
-// Utility function to do level order traversal
-void levelOrderHelper(Node *root)
+void ordenaNivel(No *raiz)
 {
-	if (root == NULL){
+	if (raiz == NULL){
 		return;
     }
 	int c=0, count=0;
-	Node *nodeNULL = NULL;
-	std::queue<Node *> q;
-	q.push(root);
+	No *noNULL = NULL;
+	std::queue<No *> q;
+	q.push(raiz);
 	while (!q.empty())
 	{
-		Node *temp = q.front();
-		if(temp == nodeNULL){
+		No *temp = q.front();
+		if(temp == noNULL){
 			q.pop();
 			count++;
 			continue;
 		}
 
-		cout << temp->key<<" "<<temp->color << " ";
+		cout << temp->chave<<" "<<temp->cor << " ";
 		q.pop();
 		count++;
 		if((int)log2(count)==c){
@@ -101,210 +94,183 @@ void levelOrderHelper(Node *root)
 			c++;
 		}
         
-        if (temp->left == NULL || temp->right == NULL)
-            q.push(nodeNULL);
-		if (temp->left != NULL)
-			q.push(temp->left);
+        if (temp->esquerda == NULL || temp->direita == NULL)
+            q.push(noNULL);
+		if (temp->esquerda != NULL)
+			q.push(temp->esquerda);
 
-		if (temp->right != NULL)
-			q.push(temp->right);
+		if (temp->direita != NULL)
+			q.push(temp->direita);
 	}
 }
 
-void ArvRB::rotateLeft(Node *&root, Node *&pt)
+void ArvRB::rotacaoEsquerda(No *&raiz, No *&pt)
 {
-	Node *pt_right = pt->right;
-	pt->right = pt_right->left;
-	if (pt->right != NULL)
-		pt->right->parent = pt;
+	No *pt_direita = pt->direita;
+	pt->direita = pt_direita->esquerda;
+	if (pt->direita != NULL)
+		pt->direita->super = pt;
 
-	pt_right->parent = pt->parent;
+	pt_direita->super = pt->super;
 
-	if (pt->parent == NULL)
-		root = pt_right;
+	if (pt->super == NULL)
+		raiz = pt_direita;
 
-	else if (pt == pt->parent->left)
-		pt->parent->left = pt_right;
+	else if (pt == pt->super->esquerda)
+		pt->super->esquerda = pt_direita;
 
 	else
-		pt->parent->right = pt_right;
+		pt->super->direita = pt_direita;
 
-	pt_right->left = pt;
-	pt->parent = pt_right;
+	pt_direita->esquerda = pt;
+	pt->super = pt_direita;
 }
 
-void ArvRB::rotateRight(Node *&root, Node *&pt)
+void ArvRB::rotacaoDireita(No *&raiz, No *&pt)
 {
-	Node *pt_left = pt->left;
+	No *pt_esquerda = pt->esquerda;
 
-	pt->left = pt_left->right;
+	pt->esquerda = pt_esquerda->direita;
 
-	if (pt->left != NULL)
-		pt->left->parent = pt;
+	if (pt->esquerda != NULL)
+		pt->esquerda->super = pt;
 
-	pt_left->parent = pt->parent;
+	pt_esquerda->super = pt->super;
 
-	if (pt->parent == NULL)
-		root = pt_left;
+	if (pt->super == NULL)
+		raiz = pt_esquerda;
 
-	else if (pt == pt->parent->left)
-		pt->parent->left = pt_left;
+	else if (pt == pt->super->esquerda)
+		pt->super->esquerda = pt_esquerda;
 
 	else
-		pt->parent->right = pt_left;
+		pt->super->direita = pt_esquerda;
 
-	pt_left->right = pt;
-	pt->parent = pt_left;
+	pt_esquerda->direita = pt;
+	pt->super = pt_esquerda;
 }
 
-// This function fixes violations caused by BST insertion
-void ArvRB::fixViolation(Node *&root, Node *&pt)
+void ArvRB::corrigirEstrutura(No *&raiz, No *&pt)
 {
-	Node *parent_pt = NULL;
-	Node *grand_parent_pt = NULL;
+	No *super_pt = NULL;
+	No *su_super_pt = NULL;
 
-	while ((pt != root) && (pt->color != BLACK) &&
-		(pt->parent->color == RED))
+	while ((pt != raiz) && (pt->cor != PRETO) &&
+		(pt->super->cor == VERMELHO))
 	{
 
-		parent_pt = pt->parent;
-		grand_parent_pt = pt->parent->parent;
+		super_pt = pt->super;
+		su_super_pt = pt->super->super;
 
-		/* Case : A
-			Parent of pt is left child of Grand-parent of pt */
-		if (parent_pt == grand_parent_pt->left)
+		if (super_pt == su_super_pt->esquerda)
 		{
 
-			Node *uncle_pt = grand_parent_pt->right;
+			No *lad_pt = su_super_pt->direita;
 
-			/* Case : 1
-			The uncle of pt is also red
-			Only Recoloring required */
-			if (uncle_pt != NULL && uncle_pt->color == RED)
+			if (lad_pt != NULL && lad_pt->cor == VERMELHO)
 			{
-				grand_parent_pt->color = RED;
-				parent_pt->color = BLACK;
-				uncle_pt->color = BLACK;
-				pt = grand_parent_pt;
+				su_super_pt->cor = VERMELHO;
+				super_pt->cor = PRETO;
+				lad_pt->cor = PRETO;
+				pt = su_super_pt;
 			}
 
 			else
 			{
-				/* Case : 2
-				pt is right child of its parent
-				Left-rotation required */
-				if (pt == parent_pt->right)
+				if (pt == super_pt->direita)
 				{
-					rotateLeft(root, parent_pt);
-					pt = parent_pt;
-					parent_pt = pt->parent;
+					rotacaoEsquerda(raiz, super_pt);
+					pt = super_pt;
+					super_pt = pt->super;
 				}
 
-				/* Case : 3
-				pt is left child of its parent
-				Right-rotation required */
-				rotateRight(root, grand_parent_pt);
-				swap(parent_pt->color, grand_parent_pt->color);
-				pt = parent_pt;
+				rotacaoDireita(raiz, su_super_pt);
+				swap(super_pt->cor, su_super_pt->cor);
+				pt = super_pt;
 			}
 		}
 
-		/* Case : B
-		Parent of pt is right child of Grand-parent of pt */
 		else
 		{
-			Node *uncle_pt = grand_parent_pt->left;
+			No *lad_pt = su_super_pt->esquerda;
 
-			/* Case : 1
-				The uncle of pt is also red
-				Only Recoloring required */
-			if ((uncle_pt != NULL) && (uncle_pt->color == RED))
+			if ((lad_pt != NULL) && (lad_pt->cor == VERMELHO))
 			{
-				grand_parent_pt->color = RED;
-				parent_pt->color = BLACK;
-				uncle_pt->color = BLACK;
-				pt = grand_parent_pt;
+				su_super_pt->cor = VERMELHO;
+				super_pt->cor = PRETO;
+				lad_pt->cor = PRETO;
+				pt = su_super_pt;
 			}
 			else
 			{
-				/* Case : 2
-				pt is left child of its parent
-				Right-rotation required */
-				if (pt == parent_pt->left)
+				if (pt == super_pt->esquerda)
 				{
-					rotateRight(root, parent_pt);
-					pt = parent_pt;
-					parent_pt = pt->parent;
+					rotacaoDireita(raiz, super_pt);
+					pt = super_pt;
+					super_pt = pt->super;
 				}
 
-				/* Case : 3
-				pt is right child of its parent
-				Left-rotation required */
-				rotateLeft(root, grand_parent_pt);
-				swap(parent_pt->color, grand_parent_pt->color);
-				pt = parent_pt;
+				rotacaoEsquerda(raiz, su_super_pt);
+				swap(super_pt->cor, su_super_pt->cor);
+				pt = super_pt;
 			}
 		}
 	}
 
-	root->color = BLACK;
+	raiz->cor = PRETO;
 }
 
-// Function to insert a new node with given key
-void ArvRB::insert(const int &key)
+void ArvRB::inserir(const int &chave)
 {
-	Node *pt = new Node(key);
+	No *pt = new No(chave);
 
-	// Do a normal BST insert
-	root = BSTInsert(root, pt);
+	raiz = inserirBST(raiz, pt);
 
-	// fix Red Black Tree violations
-	fixViolation(root, pt);
+	corrigirEstrutura(raiz, pt);
 }
 
-// Function to do inorder and level order traversals
-void ArvRB::inorder()	 { inorderHelper(root);}
-void ArvRB::levelOrder() { levelOrderHelper(root); }
+void ArvRB::emOrdem()	 { ordenaArv(raiz);}
+void ArvRB::ordemNivel() { ordenaNivel(raiz); }
 
 
 int main()
 {
-	ArvRB tree;
-	int choice=-1;
-	int newKey;
+	ArvRB arvore;
+	int escolha=-1;
+	int novaChave;
 	cout << "\033[2J\033[1;1H";
 	do{
 		
 		cout<<"\n1 - Inserir novo numero\n"<<"2 - Printar arvore por nivel\n"<<"3 - Printar arvore em ordem\n"<<"Escolha uma opcao: ";
-		cin>>choice;
+		cin>>escolha;
 		cout<<endl;
-		switch(choice){
-			case 1:	cout<<"Digite o numero:";
-					cin>>newKey;
-					tree.insert(newKey);
+		switch(escolha){
+			case 1:	cout<<"Digite o numero: ";
+					cin>>novaChave;
+					arvore.inserir(novaChave);
 					break;
-			case 2: tree.levelOrder();
+			case 2: arvore.ordemNivel();
 					break;
-			case 3: tree.inorder();				
+			case 3: arvore.emOrdem();				
 					break;
 			}
-	}while(choice!=0);
+	}while(escolha!=0);
 
-/*
-	tree.insert(7);
-	tree.insert(6);
-	tree.insert(5);
-	tree.insert(4);
-	tree.insert(3);
-	tree.insert(2);
-	tree.insert(1);
 
-	cout << "\nInoder Traversal of Created Tree\n";
-	tree.inorder();
+	arvore.inserir(7);
+	arvore.inserir(6);
+	arvore.inserir(5);
+	arvore.inserir(4);
+	arvore.inserir(3);
+	arvore.inserir(2);
+	arvore.inserir(1);
 
-	cout << "\n\nLevel Order Traversal of Created Tree\n";
-	tree.levelOrder();
-*/
+	cout << "\nEm ordem transversal da arvore criada\n";
+	arvore.emOrdem();
+
+	cout << "\n\nPassagem de ordem de nivel da arvore criada\n";
+	arvore.ordemNivel();
+
 	return 0;
 }
 
