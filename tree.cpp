@@ -73,6 +73,7 @@ void ordenaNivel(No *raiz)
 	if (raiz == NULL){
 		return;
     }
+	
 	int c=0, count=0;
 	No *noNULL = NULL;
 	std::queue<No *> q;
@@ -244,14 +245,15 @@ int main()
 	int escolha=-1;
 	int novaChave;
 	int tipoImpressao = -1;
-	cout << "\033[2J\033[1;1H";
 	do{
 		cout << "\033[2J\033[1;1H";
+		cout<<endl;
 		if(tipoImpressao==0)
 			arvore->emOrdem();
 		else
 			arvore->ordemNivel();
-		cout<<"\n1 - Inserir novo numero\n"<<"2 - Mostrar arvore por nivel\n"<<"3 - Mostrar arvore em ordem\n"<<"Escolha uma opcao: ";
+		cout<<endl;
+		cout<<"\n1 - Inserir novo numero\n"<<"2 - Mostrar arvore por nivel\n"<<"3 - Mostrar arvore em ordem\n4 - Limpar arvore\n"<<"Escolha uma opcao: ";
 		cin>>escolha;
 		cout<<endl;
 		switch(escolha){
